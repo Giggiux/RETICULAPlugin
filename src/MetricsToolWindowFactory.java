@@ -19,9 +19,6 @@ public class MetricsToolWindowFactory implements ToolWindowFactory {
 	@Override
 	public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
 
-		ProjectService service = ServiceManager.getService(project, ProjectService.class);
-		service.setFactory(this);
-
 		MetricsToolWindowForm toolWindowUI = new MetricsToolWindowForm(project);
 
 		JPanel rootPanel = toolWindowUI.getRootPanel();

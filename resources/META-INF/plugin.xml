@@ -25,6 +25,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
     <projectService id="ProjectService" serviceImplementation="ProjectService"/>
+    <projectService id="HTTPPostRequestService" serviceImplementation="HTTPPostRequestService"/>
 
     <projectConfigurable displayName="Metrics Calculator" instance="SettingsConfigurable"/>
 

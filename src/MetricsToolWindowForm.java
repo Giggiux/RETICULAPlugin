@@ -1,20 +1,12 @@
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.ui.JBColor;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.SpiderWebPlot;
-import org.jfree.data.category.DefaultCategoryDataset;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 
 /**
@@ -38,18 +30,21 @@ public class MetricsToolWindowForm {
 	private ChartPanel fileOverviewChart;
 	private Project myProject;
 
-	private ProjectService service;
+	private RadarChartSetter radarChartSetter;
 
 	public MetricsToolWindowForm(Project project) {
 		this.myProject = project;
 
-		this.service = ServiceManager.getService(myProject, ProjectService.class);
+		ProjectService service = ServiceManager.getService(myProject, ProjectService.class);
 		service.setForm(this);
+
+		HTTPPostRequestService httpService = ServiceManager.getService(myProject, HTTPPostRequestService.class);
+
+		this.radarChartSetter = RadarChartSetter.getInstance();
 
 		$$$setupUI$$$();
 
-
-		teamSizeCheckBox.addChangeListener((ChangeEvent e) -> service.setChartPlots());
+		teamSizeCheckBox.addChangeListener((ChangeEvent e) -> httpService.sendRequestForPercentileValues());
 
 
 	}
@@ -59,25 +54,23 @@ public class MetricsToolWindowForm {
 	}
 
 	private void createUIComponents() {
-
-		service.setEmptyPlots();
-
+		radarChartSetter.setChartPlots();
 	}
 
 	public void setProjectOverviewJFreeChart(JFreeChart projectOverviewChart) {
-		this.projectOverviewChart.setChart(projectOverviewChart);
+		if (this.projectOverviewChart != null)
+			this.projectOverviewChart.setChart(projectOverviewChart);
+		else
+			this.projectOverviewChart = new ChartPanel(projectOverviewChart);
+
 	}
 
 	public void setFileOverviewJFreeChart(JFreeChart fileOverviewChart) {
-		this.fileOverviewChart.setChart(fileOverviewChart);
-	}
+		if (this.fileOverviewChart != null)
+			this.fileOverviewChart.setChart(fileOverviewChart);
+		else
+			this.fileOverviewChart = new ChartPanel(fileOverviewChart);
 
-	public void setProjectOverviewChart(ChartPanel projectOverviewChart) {
-		this.projectOverviewChart = projectOverviewChart;
-	}
-
-	public void setFileOverviewChart(ChartPanel fileOverviewChart) {
-		this.fileOverviewChart = fileOverviewChart;
 	}
 
 	/**
@@ -138,7 +131,7 @@ public class MetricsToolWindowForm {
 		files = new JPanel();
 		files.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
 		filters.add(files, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-		files.setBorder(BorderFactory.createTitledBorder("on files"));
+		files.setBorder(BorderFactory.createTitledBorder("on file"));
 		lineOfCodeCheckBox = new JCheckBox();
 		lineOfCodeCheckBox.setText("Line of Code");
 		files.add(lineOfCodeCheckBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));

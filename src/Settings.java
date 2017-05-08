@@ -56,6 +56,9 @@ public class Settings {
 		myProject = project;
 		$$$setupUI$$$();
 
+
+		// Only numbers in Text Fileds:
+
 		((AbstractDocument) teamSize.getDocument()).setDocumentFilter(new DocumentFilter() {
 			Pattern regEx = Pattern.compile("\\d+");
 
@@ -82,6 +85,7 @@ public class Settings {
 			}
 		});
 
+		// Set previous settings
 		setSettings();
 
 	}
@@ -145,7 +149,7 @@ public class Settings {
 
 
 			ProjectService service = ServiceManager.getService(myProject, ProjectService.class);
-			if (service.isFormSet()) service.setChartPlots();
+			if (service.isFormSet()) RadarChartSetter.getInstance().setChartPlots();
 		}
 
 	}
