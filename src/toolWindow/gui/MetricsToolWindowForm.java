@@ -1,13 +1,19 @@
+package toolWindow.gui;
+
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import configuration.gui.Settings;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import services.HTTPPostRequestService;
+import services.RadarChartSetterService;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 
 /**
  * Created by giggiux on 04/05/2017.
@@ -30,22 +36,46 @@ public class MetricsToolWindowForm {
 	private ChartPanel fileOverviewChart;
 	private Project myProject;
 
-	private RadarChartSetter radarChartSetter;
 
 	public MetricsToolWindowForm(Project project) {
 		this.myProject = project;
 
-		ProjectService service = ServiceManager.getService(myProject, ProjectService.class);
+		RadarChartSetterService service = ServiceManager.getService(myProject, RadarChartSetterService.class);
 		service.setForm(this);
 
 		HTTPPostRequestService httpService = ServiceManager.getService(myProject, HTTPPostRequestService.class);
 
-		this.radarChartSetter = RadarChartSetter.getInstance();
 
 		$$$setupUI$$$();
 
-		teamSizeCheckBox.addChangeListener((ChangeEvent e) -> httpService.sendRequestForPercentileValues());
+//		teamSizeCheckBox.addChangeListener((ChangeEvent e) -> httpService.sendRequestForPercentileValues());
+//		teamSizeCheckBox.addPropertyChangeListener("selected", (PropertyChangeEvent e) -> {
+//			System.out.println(e.getNewValue());
+//		});
+		PropertiesComponent component = PropertiesComponent.getInstance(myProject);
 
+		teamSizeCheckBox.setSelected(component.getBoolean(Settings.TeamSizeCheckLabel, false));
+		similarAgeCheckBox.setSelected(component.getBoolean(Settings.SimilarAgeCheckLabel, false));
+		similarSizeCheckBox.setSelected(component.getBoolean(Settings.SimilarSizeCheckLabel, false));
+		lineOfCodeCheckBox.setSelected(component.getBoolean(Settings.LineOfCodeCheckLabel, false));
+
+		teamSizeCheckBox.addItemListener((ItemEvent e) -> {
+			component.setValue(Settings.TeamSizeCheckLabel, teamSizeCheckBox.isSelected(), false);
+			httpService.sendRequestForPercentileValues();
+		});
+		similarAgeCheckBox.addItemListener((ItemEvent e) -> {
+			component.setValue(Settings.SimilarAgeCheckLabel, similarAgeCheckBox.isSelected(), false);
+			httpService.sendRequestForPercentileValues();
+
+		});
+		similarSizeCheckBox.addItemListener((ItemEvent e) -> {
+			component.setValue(Settings.SimilarSizeCheckLabel, similarSizeCheckBox.isSelected(), false);
+			httpService.sendRequestForPercentileValues();
+		});
+		lineOfCodeCheckBox.addItemListener((ItemEvent e) -> {
+			component.setValue(Settings.LineOfCodeCheckLabel, lineOfCodeCheckBox.isSelected(), false);
+			httpService.sendRequestForPercentileValues();
+		});
 
 	}
 
@@ -54,7 +84,8 @@ public class MetricsToolWindowForm {
 	}
 
 	private void createUIComponents() {
-		radarChartSetter.setChartPlots();
+		RadarChartSetterService service = ServiceManager.getService(myProject, RadarChartSetterService.class);
+		service.setChartPlots();
 	}
 
 	public void setProjectOverviewJFreeChart(JFreeChart projectOverviewChart) {

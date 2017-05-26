@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="Settings">
-  <grid id="27dc6" binding="rootPanel" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="configuration.gui.Settings">
+  <grid id="27dc6" binding="rootPanel" layout-manager="GridLayoutManager" row-count="4" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="758" height="542"/>
@@ -16,13 +16,13 @@
         <properties/>
         <border type="none" title="Metrics to be computed"/>
         <children>
-          <component id="221ca" class="javax.swing.JCheckBox" binding="CBCCheckBox" default-binding="true">
+          <component id="221ca" class="javax.swing.JCheckBox" binding="CBOCheckBox">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <selected value="true"/>
-              <text value="CBC"/>
+              <text value="CBO"/>
               <toolTipText value="Coupling Between Objects"/>
             </properties>
           </component>
@@ -66,19 +66,9 @@
               <toolTipText value="Code redability"/>
             </properties>
           </component>
-          <component id="75afc" class="javax.swing.JCheckBox" binding="LOCCheckBox" default-binding="true">
-            <constraints>
-              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <selected value="true"/>
-              <text value="LOC"/>
-              <toolTipText value="Lines of code"/>
-            </properties>
-          </component>
           <component id="91fe" class="javax.swing.JCheckBox" binding="WMCCheckBox" default-binding="true">
             <constraints>
-              <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <selected value="true"/>
@@ -88,7 +78,7 @@
           </component>
           <component id="2a72d" class="javax.swing.JCheckBox" binding="CDCheckBox" default-binding="true">
             <constraints>
-              <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <selected value="true"/>
@@ -98,7 +88,7 @@
           </component>
         </children>
       </grid>
-      <grid id="61302" binding="timePanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="61302" binding="timePanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -128,13 +118,14 @@
             </constraints>
             <properties>
               <majorTickSpacing value="300"/>
-              <maximum value="3600"/>
+              <maximum value="3660"/>
               <minimum value="60"/>
               <minorTickSpacing value="10"/>
               <paintLabels value="true"/>
               <paintTicks value="true"/>
               <paintTrack value="true"/>
               <snapToTicks value="false"/>
+              <toolTipText value="Set how many seconds need to pass to recompute metrics (60-3600)"/>
               <value value="300"/>
               <valueIsAdjusting value="false"/>
             </properties>
@@ -150,11 +141,36 @@
             </constraints>
             <properties>
               <majorTickSpacing value="100"/>
-              <maximum value="2000"/>
+              <maximum value="2010"/>
               <minimum value="10"/>
               <minorTickSpacing value="10"/>
               <paintLabels value="true"/>
               <paintTicks value="true"/>
+              <toolTipText value="Set how many words need to be changed to recompute the metrics (10-2000)"/>
+            </properties>
+          </component>
+          <component id="28ef5" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Percentage"/>
+            </properties>
+          </component>
+          <component id="ef11b" class="javax.swing.JSlider" binding="percentage">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <inverted value="false"/>
+              <majorTickSpacing value="10"/>
+              <minimum value="10"/>
+              <minorTickSpacing value="10"/>
+              <paintLabels value="true"/>
+              <paintTicks value="true"/>
+              <toolTipText value="Set the percentage radius of the set in which the filters are gonna be applied."/>
+              <value value="30"/>
+              <valueIsAdjusting value="false"/>
             </properties>
           </component>
         </children>
@@ -191,6 +207,7 @@
             </constraints>
             <properties>
               <text value="1"/>
+              <toolTipText value="Set the number of Developers in the Team"/>
             </properties>
           </component>
           <component id="86fdc" class="javax.swing.JTextField" binding="projectAge">
@@ -201,6 +218,27 @@
             </constraints>
             <properties>
               <text value="0"/>
+              <toolTipText value="Set the project age in months"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <grid id="b5184" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none" title="Custom Server"/>
+        <children>
+          <component id="976c2" class="javax.swing.JTextField" binding="serverAddress">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <toolTipText value="Leave empty for default server"/>
             </properties>
           </component>
         </children>

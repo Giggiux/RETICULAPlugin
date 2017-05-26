@@ -24,12 +24,15 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
-    <projectService id="ProjectService" serviceImplementation="ProjectService"/>
-    <projectService id="HTTPPostRequestService" serviceImplementation="HTTPPostRequestService"/>
+    <projectService id="services.ProjectService" serviceImplementation="services.ProjectService"/>
+    <projectService id="services.HTTPPostRequestService" serviceImplementation="services.HTTPPostRequestService"/>
+    <projectService id="services.MetricsHandlerService" serviceImplementation="services.MetricsHandlerService"/>
+    <projectService id="services.RadarChartSetterService" serviceImplementation="services.RadarChartSetterService"/>
 
-    <projectConfigurable displayName="Metrics Calculator" instance="SettingsConfigurable"/>
 
-    <toolWindow id="Metrics" anchor="right" factoryClass="MetricsToolWindowFactory"/>
+    <projectConfigurable displayName="Metrics Calculator" instance="configuration.SettingsConfigurable"/>
+
+    <toolWindow id="Metrics" anchor="right" factoryClass="toolWindow.MetricsToolWindowFactory"/>
 
   </extensions>
 
