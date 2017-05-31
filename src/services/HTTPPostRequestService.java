@@ -32,9 +32,7 @@ import java.util.Map;
 
 import static org.apache.commons.httpclient.params.HttpMethodParams.USER_AGENT;
 
-/**
- * Created by giggiux on 07/05/2017.
- */
+
 public class HTTPPostRequestService {
 
 	private Project myProject;

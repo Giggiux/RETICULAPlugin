@@ -6,6 +6,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.DarculaColors;
 import com.intellij.ui.JBColor;
 import configuration.gui.Settings;
 import org.jetbrains.annotations.NotNull;
@@ -84,6 +85,7 @@ public class RadarChartSetterService {
 		final JBColor darkGreen = new JBColor(new Color(0, 204, 0), new Color(64, 212, 64));
 		final JBColor orange = new JBColor(new Color(204, 86, 6), new Color(212, 104, 32));
 		final JBColor yellow = new JBColor(new Color(202, 202, 0), new Color(252, 255, 25));
+		final JBColor blue = new JBColor(Color.blue, Color.blue);
 
 
 		SpiderWebPlot plot = new SpiderWebPlot(dataset);
@@ -105,8 +107,8 @@ public class RadarChartSetterService {
 		plot.setSeriesOutlinePaint(0, lightGreen);
 		plot.setSeriesPaint(0, lightGreen);
 
-		plot.setSeriesOutlinePaint(5, JBColor.blue);
-		plot.setSeriesPaint(5, JBColor.blue);
+		plot.setSeriesOutlinePaint(5, blue);
+		plot.setSeriesPaint(5, blue);
 
 		plot.setSeriesOutlineStroke(5, new BasicStroke(2));
 
