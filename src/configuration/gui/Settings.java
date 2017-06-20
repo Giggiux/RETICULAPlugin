@@ -42,23 +42,23 @@ public class Settings {
 	private JSlider percentage;
 	private Project myProject;
 
-	static final public String CBOSettingLabel = "githubMetricsCalculatorPlugin_CBC";
-	static final public String C3SettingLabel = "githubMetricsCalculatorPlugin_C3";
-	static final public String LCOMSettingLabel = "githubMetricsCalculatorPlugin_LCOM";
-	static final public String CCBCSettingLabel = "githubMetricsCalculatorPlugin_CCBC";
-	static final public String CRSettingLabel = "githubMetricsCalculatorPlugin_CR";
-	static final public String WMCSettingLabel = "githubMetricsCalculatorPlugin_WMC";
-	static final public String CDSettingLabel = "githubMetricsCalculatorPlugin_CD";
-	static final public String SecSettingLabel = "githubMetricsCalculatorPlugin_RecomputeMetrics_Sec";
-	static final public String WordSettingLabel = "githubMetricsCalculatorPlugin_RecomputeMetrics_Word";
-	static final public String PercentageSettingLabel = "githubMetricsCalculatorPlugin_PercentageSet";
-	static final public String SizeSettingLabel = "githubMetricsCalculatorPlugin_Filters_TeamSize";
-	static final public String AgeSettingLabel = "githubMetricsCalculatorPlugin_Filters_ProjectAge";
-	static final public String SimilarSizeCheckLabel = "githubMetricsCalculatorPlugin_similarSizeCheck";
-	static final public String LineOfCodeCheckLabel = "githubMetricsCalculatorPlugin_lineOfCodeCheck";
-	static final public String SimilarAgeCheckLabel = "githubMetricsCalculatorPlugin_similarAgeCheck";
-	static final public String TeamSizeCheckLabel = "githubMetricsCalculatorPlugin_teamSizeCheck";
-	static final public String ServerAddressLabel = "githubMetricsCalculatorPlugin_serverAddress";
+	public static final String CBOSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_CBC";
+	public static final String C3SettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_C3";
+	public static final String LCOMSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_LCOM";
+	public static final String CCBCSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_CCBC";
+	public static final String CRSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_CR";
+	public static final String WMCSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_WMC";
+	public static final String CDSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_CD";
+	public static final String SecSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_RecomputeMetrics_Sec";
+	public static final String WordSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_RecomputeMetrics_Word";
+	public static final String PercentageSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_PercentageSet";
+	public static final String SizeSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_Filters_TeamSize";
+	public static final String AgeSettingLabel = "REalTImeCodeQUaLityAssessmentPlugin_Filters_ProjectAge";
+	public static final String SimilarSizeCheckLabel = "REalTImeCodeQUaLityAssessmentPlugin_similarSizeCheck";
+	public static final String LineOfCodeCheckLabel = "REalTImeCodeQUaLityAssessmentPlugin_lineOfCodeCheck";
+	public static final String SimilarAgeCheckLabel = "REalTImeCodeQUaLityAssessmentPlugin_similarAgeCheck";
+	public static final String TeamSizeCheckLabel = "REalTImeCodeQUaLityAssessmentPlugin_teamSizeCheck";
+	public static final String ServerAddressLabel = "REalTImeCodeQUaLityAssessmentPlugin_serverAddress";
 
 
 	public Settings(Project project) {
@@ -162,7 +162,7 @@ public class Settings {
 			component.setValue(ServerAddressLabel, serverAddress.getText(), "");
 
 			RadarChartSetterService service = ServiceManager.getService(myProject, RadarChartSetterService.class);
-			if (service.isFormSet()) service.setChartPlots();
+			if (service.isFormSet()) service.updateCharts();
 		}
 
 	}
@@ -258,7 +258,7 @@ public class Settings {
 		timePanel = new JPanel();
 		timePanel.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
 		rootPanel.add(timePanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-		timePanel.setBorder(BorderFactory.createTitledBorder("Recompute Metrics every:"));
+		timePanel.setBorder(BorderFactory.createTitledBorder("Metrics computation"));
 		final JLabel label1 = new JLabel();
 		label1.setText("Seconds");
 		timePanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -307,7 +307,7 @@ public class Settings {
 		projectSizePanel = new JPanel();
 		projectSizePanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
 		rootPanel.add(projectSizePanel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-		projectSizePanel.setBorder(BorderFactory.createTitledBorder("Project Settings:"));
+		projectSizePanel.setBorder(BorderFactory.createTitledBorder("Project Settings"));
 		final JLabel label4 = new JLabel();
 		label4.setText("Team Size:");
 		projectSizePanel.add(label4, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));

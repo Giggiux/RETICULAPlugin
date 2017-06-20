@@ -6,13 +6,10 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.DarculaColors;
 import com.intellij.ui.JBColor;
 import configuration.gui.Settings;
 import org.jetbrains.annotations.NotNull;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.labels.CategoryToolTipGenerator;
-import org.jfree.chart.labels.StandardCategoryToolTipGenerator;
 import org.jfree.chart.plot.SpiderWebPlot;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -27,29 +24,22 @@ import java.util.Map;
  */
 public class RadarChartSetterService {
 
+	private static final HashMap<Integer, String> metricsOrder = new HashMap<>(7);
+	private static final HashMap<String, Boolean> metricsBoolean = new HashMap<>(7);
 	private Project myProject;
-
 	private MetricsToolWindowForm form;
-
-
-	static final private HashMap<Integer, String> metricsOrder = new HashMap<>(7);
-
-	{
-		metricsOrder.put(0,"C3");
-		metricsOrder.put(1,"CBO");
-		metricsOrder.put(2,"CD");
-		metricsOrder.put(3,"LCOM");
-		metricsOrder.put(4,"WMC");
-		metricsOrder.put(5,"CCBC");
-		metricsOrder.put(6,"CR");
-	}
-
-	static final private HashMap<String, Boolean> metricsBoolean = new HashMap<>(7);
-
 
 
 	public RadarChartSetterService(@NotNull Project myProject) {
 		this.myProject = myProject;
+
+		metricsOrder.put(0, "C3");
+		metricsOrder.put(1, "CBO");
+		metricsOrder.put(2, "CD");
+		metricsOrder.put(3, "LCOM");
+		metricsOrder.put(4, "WMC");
+		metricsOrder.put(5, "CCBC");
+		metricsOrder.put(6, "CR");
 
 		ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Compute Metrics") {
 			public void run(@NotNull ProgressIndicator pi) {
@@ -59,7 +49,6 @@ public class RadarChartSetterService {
 	}
 
 	private DefaultCategoryDataset getDefaultDataset() {
-
 
 
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
@@ -125,19 +114,17 @@ public class RadarChartSetterService {
 
 		SpiderWebPlot plot = createSpiderWebPlot(dataset);
 
-		plot.setToolTipGenerator(new CategoryToolTipGenerator() {
-
-			@Override
-			public String generateToolTip(CategoryDataset categoryDataset, int i, int i1) {
-				String toolTip;
-				if (i == 5) {
-					try {
-						toolTip = "percentile value: " + categoryDataset.getValue(i, i1) + ", metric value: " + metrics.get(metricsOrder.get(i1));
-					} finally {}
-				} else
-					toolTip = categoryDataset.getValue(i, i1).toString();
-				return toolTip;
-			}
+		plot.setToolTipGenerator((CategoryDataset categoryDataset, int i, int i1) -> {
+			String toolTip;
+			if (i == 5) {
+				try {
+					toolTip = "percentile value: " + categoryDataset.getValue(i, i1) + ", metric value: " + metrics.get(metricsOrder.get(i1));
+				} catch (Exception e) {
+					toolTip = "";
+				}
+			} else
+				toolTip = categoryDataset.getValue(i, i1).toString();
+			return toolTip;
 		});
 
 		JFreeChart chart = new JFreeChart(plot);
@@ -210,15 +197,13 @@ public class RadarChartSetterService {
 		form.setFileOverviewJFreeChart(createJFreeChart(dataset, actualMetrics));
 	}
 
-	private Double[] metricsMapToArray(Map<String,Double> percentileValues) {
+	private Double[] metricsMapToArray(Map<String, Double> percentileValues) {
 		Double[] metrics = new Double[percentileValues.size()];
 
-		metricsOrder.forEach((Integer i, String metricsLabel) -> {
-			metrics[i] = percentileValues.get(metricsLabel);
-		});
+		metricsOrder.forEach((Integer i, String metricsLabel) -> metrics[i] = percentileValues.get(metricsLabel));
 
 		return metrics;
-	};
+	}
 
 	public void updateCharts() {
 		HTTPPostRequestService service = ServiceManager.getService(myProject, HTTPPostRequestService.class);
@@ -234,4 +219,3 @@ public class RadarChartSetterService {
 	}
 
 }
-

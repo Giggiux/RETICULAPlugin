@@ -54,7 +54,7 @@ public class MetricsHandlerService {
 	}
 
 
-	public void startExecution() {
+	void startExecution() {
 
 		if (executorService.isShutdown()) {
 			executorService = Executors.newScheduledThreadPool(1);
@@ -97,13 +97,13 @@ public class MetricsHandlerService {
 		executorService.shutdownNow();
 	}
 
-	public void restart() {
+	private void restart() {
 		this.stop();
 		this.startExecution();
 	}
 
 
-	public HashMap<String, Double> getProjectMetrics() {
+	HashMap<String, Double> getProjectMetrics() {
 
 		Collection<CKNumber> allReport = metrics;
 
@@ -140,7 +140,7 @@ public class MetricsHandlerService {
 		return projectMetrics;
 	}
 
-	public HashMap<String, Double> getFileMetrics(String file) {
+	HashMap<String, Double> getFileMetrics(String file) {
 		Collection<CKNumber> allReport = metrics;
 
 		HashMap<String, Double> fileMetrics = new HashMap<>();
@@ -162,7 +162,7 @@ public class MetricsHandlerService {
 		return fileMetrics;
 	}
 
-	public HashMap<String, Double> getLatestFileMetrics() {
+	HashMap<String, Double> getLatestFileMetrics() {
 		return latestFileMetrics;
 	}
 
@@ -186,10 +186,8 @@ public class MetricsHandlerService {
 
 				String eventFileExtention = eventFile.getExtension();
 
-				System.out.println("FILE CHANGED: " + eventFile.getPath());
 
 				if (currentFilePath == null && eventFileExtention != null && eventFileExtention.equals("java")) {
-					System.out.println("FILE NOT VALID: " + eventFile.getPath());
 					currentFilePath = eventFile.getPath();
 					fileOriginalWordCount = countWordsInFile(eventFile);
 
@@ -199,7 +197,6 @@ public class MetricsHandlerService {
 					PropertiesComponent component = PropertiesComponent.getInstance(myProject);
 					int wordsToBeDifferent = component.getInt(Settings.WordSettingLabel, 300);
 
-					System.out.println("FILE VALID, currentword: " + currentWordCount);
 					if (Math.abs(currentWordCount - fileOriginalWordCount) >= wordsToBeDifferent) {
 						MetricsHandlerService metricsHandlerService = ServiceManager.getService(myProject, MetricsHandlerService.class);
 						metricsHandlerService.restart();
@@ -217,13 +214,10 @@ public class MetricsHandlerService {
 			public void selectionChanged(@NotNull FileEditorManagerEvent event) {
 				VirtualFile eventNewFile = event.getNewFile();
 
-				System.out.println("FILE IN SCOPE CHANGED: " + eventNewFile.getPath());
-
 				if (eventNewFile != null && eventNewFile.getExtension() != null && eventNewFile.getExtension().equals("java")) {
 					currentFilePath = eventNewFile.getPath();
 
 					fileOriginalWordCount = countWordsInFile(eventNewFile);
-					System.out.println("changing file");
 				}
 
 				HTTPPostRequestService httpPostRequestService = com.intellij.openapi.components.ServiceManager.getService(myProject, HTTPPostRequestService.class);

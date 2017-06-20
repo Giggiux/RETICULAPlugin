@@ -48,10 +48,6 @@ public class MetricsToolWindowForm {
 
 		$$$setupUI$$$();
 
-//		teamSizeCheckBox.addChangeListener((ChangeEvent e) -> httpService.sendRequestForPercentileValues());
-//		teamSizeCheckBox.addPropertyChangeListener("selected", (PropertyChangeEvent e) -> {
-//			System.out.println(e.getNewValue());
-//		});
 		PropertiesComponent component = PropertiesComponent.getInstance(myProject);
 
 		teamSizeCheckBox.setSelected(component.getBoolean(Settings.TeamSizeCheckLabel, false));

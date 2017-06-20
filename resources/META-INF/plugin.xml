@@ -1,6 +1,6 @@
 <idea-plugin>
-  <id>it.frunzio.luigi.githubMCPlugin</id>
-  <name>Metrics Calculator</name>
+  <id>it.frunzio.luigi.RETICULA</id>
+  <name>RETICULA</name>
   <version>1.0</version>
   <vendor email="frunzl@usi.ch" url="http://luigi.frunzio.it">Giggiux</vendor>
 
@@ -9,7 +9,7 @@
     ]]></description>
 
   <change-notes><![CDATA[
-      First draft.<br>
+      Beta of the plugin.<br>
     ]]>
   </change-notes>
 
@@ -23,8 +23,6 @@
   -->
 
   <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
-    <projectService id="services.ProjectService" serviceImplementation="services.ProjectService"/>
     <projectService id="services.HTTPPostRequestService" serviceImplementation="services.HTTPPostRequestService"/>
     <projectService id="services.MetricsHandlerService" serviceImplementation="services.MetricsHandlerService"/>
     <projectService id="services.RadarChartSetterService" serviceImplementation="services.RadarChartSetterService"/>
@@ -37,7 +35,6 @@
   </extensions>
 
   <actions>
-    <!-- Add your actions here -->
   </actions>
 
 

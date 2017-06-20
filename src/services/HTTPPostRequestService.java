@@ -75,7 +75,7 @@ public class HTTPPostRequestService {
 
 			String server = component.getValue(Settings.ServerAddressLabel, "");
 
-			String url = server.isEmpty() ? "http://localhost:9000/" : server;
+			String url = server.isEmpty() ? "http://rio.inf.usi.ch:38100/" : server;
 
 			HttpClient client = HttpClients.createDefault();
 			HttpPost post = new HttpPost(url);
