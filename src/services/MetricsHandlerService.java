@@ -1,22 +1,28 @@
 package services;
 
 
+import com.github.mauricioaniche.ck.CKNumber;
+import com.github.mauricioaniche.ck.CKReport;
+import com.intellij.concurrency.JobScheduler;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.progress.*;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileListener;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.indexing.FileBasedIndex;
+import com.intellij.util.indexing.ID;
 import com.intellij.util.messages.MessageBus;
-import it.frunzioluigi.metricsCalculator.ReducedCK;
-import com.github.mauricioaniche.ck.CKNumber;
-import com.github.mauricioaniche.ck.CKReport;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
-
-import com.intellij.openapi.project.Project;
 import configuration.gui.Settings;
+import it.frunzioluigi.metricsCalculator.ReducedCK;
+import it.frunzioluigi.metricsCalculator.metrics.CCBC;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -26,7 +32,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.concurrent.Executors;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -35,51 +41,104 @@ import java.util.concurrent.TimeUnit;
  */
 public class MetricsHandlerService {
 	private Project myProject;
-
 	private ScheduledExecutorService executorService;
-
-	private Collection<CKNumber> metrics = new ArrayList<>();
-
-	private String currentFilePath;
-	private int fileOriginalWordCount;
-
 	private HashMap<String, Double> latestFileMetrics;
+	private HashMap<String, Integer> editedFilesWordsCount;
+	private HashMap<String, CKNumber> report = new HashMap<>();
+	private ReducedCK CKMetricsCalculator;
+	private boolean firstMetricsComputed = false;
 
 	public MetricsHandlerService(Project myProject) {
 		this.myProject = myProject;
 
-		executorService = Executors.newScheduledThreadPool(1);
+		executorService = JobScheduler.getScheduler();
 
 		this.setFileChangesListener();
+
+		CKMetricsCalculator = new ReducedCK();
+
+		ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Compute metrics") {
+			@Override
+			public void run(@NotNull ProgressIndicator progressIndicator) {
+				progressIndicator.start();
+				progressIndicator.setFraction(0.);
+
+				Collection<VirtualFile> javaVirtualFiles = FileBasedIndex.getInstance().getContainingFiles(ID.create("filetypes"),JavaFileType.INSTANCE, GlobalSearchScope.projectScope(myProject));
+				ArrayList<String> javaFilesArray = new ArrayList<>();
+
+				javaVirtualFiles.forEach((VirtualFile vf) -> {
+					javaFilesArray.add(vf.getPath().replace("file://", ""));
+				});
+
+				String[] javaFiles = new String[javaFilesArray.size()];
+				javaFiles = javaFilesArray.toArray(javaFiles);
+
+				computeMetricsFromFileList(javaFiles, progressIndicator);
+
+				ApplicationManager.getApplication().invokeLater(() -> {
+					RadarChartSetterService RadarChartSetter = ServiceManager.getService(myProject, RadarChartSetterService.class);
+					RadarChartSetter.updateCharts();
+				});
+				progressIndicator.stop();
+				firstMetricsComputed = true;
+			}
+		});
+	}
+
+
+	private HashMap<String, CKNumber> getFileReport(String path) {
+		HashMap<String, CKNumber> report = new HashMap<>();
+
+		CKReport reportSingleFile = CKMetricsCalculator.calculate(path);
+		Collection<CKNumber> CKArray = reportSingleFile.all();
+		for (CKNumber rep : CKArray) {
+			report.put(path, rep);
+		}
+		return report;
+	}
+
+
+	private void computeMetricsFromFileList(String[] javaFiles, ProgressIndicator pi) {
+		int size = javaFiles.length;
+		for (int i = 0; i<size; i++) {
+			report.putAll(getFileReport(javaFiles[i]));
+			if (pi != null) pi.setFraction((double) i / (size * 2));
+		}
+
+		Collection<CKNumber> allReport = report.values();
+		new CCBC().calculate(allReport);
 	}
 
 
 	void startExecution() {
 
 		if (executorService.isShutdown()) {
-			executorService = Executors.newScheduledThreadPool(1);
+			executorService = JobScheduler.getScheduler();
 		}
 
-		String path = myProject.getBaseDir().toString().replace("file://", "");
 		PropertiesComponent component = PropertiesComponent.getInstance(myProject);
 		int seconds = component.getInt(Settings.SecSettingLabel, 300);
 
-
 		Runnable taskWrapper = () -> {
+			if (firstMetricsComputed) {
+				Set<String> javaFilesSet = editedFilesWordsCount.keySet();
+				String[] javaFiles = new String[javaFilesSet.size()];
+				javaFiles = javaFilesSet.toArray(javaFiles);
 
-			ReducedCK myCK = new ReducedCK();
-			CKReport report = myCK.calculate(path);
-			metrics = report.all();
+				computeMetricsFromFileList(javaFiles, null);
 
-			ApplicationManager.getApplication().invokeLater(() -> {
-				RadarChartSetterService RadarChartSetter = ServiceManager.getService(myProject, RadarChartSetterService.class);
-				RadarChartSetter.updateCharts();
-			});
+				editedFilesWordsCount = new HashMap<>();
+
+				HTTPPostRequestService httpPostRequestService = com.intellij.openapi.components.ServiceManager.getService(myProject, HTTPPostRequestService.class);
+				httpPostRequestService.fileIsChanged();
+			}
 		};
 
 		long delay = computeDelay(seconds);
-		executorService.scheduleAtFixedRate(taskWrapper, 0, delay, TimeUnit.SECONDS);
+		executorService.scheduleWithFixedDelay(taskWrapper, 0, delay, TimeUnit.SECONDS);
 	}
+
+
 
 	private long computeDelay(int targetSec) {
 		LocalDateTime localNow = LocalDateTime.now();
@@ -105,7 +164,7 @@ public class MetricsHandlerService {
 
 	HashMap<String, Double> getProjectMetrics() {
 
-		Collection<CKNumber> allReport = metrics;
+		Collection<CKNumber> allReport = report.values();
 
 		HashMap<String, Double> projectMetrics = new HashMap<>();
 
@@ -141,7 +200,7 @@ public class MetricsHandlerService {
 	}
 
 	HashMap<String, Double> getFileMetrics(String file) {
-		Collection<CKNumber> allReport = metrics;
+		Collection<CKNumber> allReport = report.values();
 
 		HashMap<String, Double> fileMetrics = new HashMap<>();
 
@@ -186,22 +245,23 @@ public class MetricsHandlerService {
 
 				String eventFileExtention = eventFile.getExtension();
 
+				String filePath = eventFile.getPath().replace("file://", "");
 
-				if (currentFilePath == null && eventFileExtention != null && eventFileExtention.equals("java")) {
-					currentFilePath = eventFile.getPath();
-					fileOriginalWordCount = countWordsInFile(eventFile);
+				if (eventFileExtention != null && eventFileExtention.equals("java")) {
+					if (editedFilesWordsCount.containsKey(filePath)) {
+						int currentWordCount = countWordsInFile(eventFile);
+						int originalWorkCount = editedFilesWordsCount.get(filePath);
 
-				} else if (currentFilePath != null && eventFile.getPath().equals(currentFilePath)) {
-					int currentWordCount = countWordsInFile(eventFile);
+						PropertiesComponent component = PropertiesComponent.getInstance(myProject);
+						int wordsToBeDifferent = component.getInt(Settings.WordSettingLabel, 300);
 
-					PropertiesComponent component = PropertiesComponent.getInstance(myProject);
-					int wordsToBeDifferent = component.getInt(Settings.WordSettingLabel, 300);
-
-					if (Math.abs(currentWordCount - fileOriginalWordCount) >= wordsToBeDifferent) {
-						MetricsHandlerService metricsHandlerService = ServiceManager.getService(myProject, MetricsHandlerService.class);
-						metricsHandlerService.restart();
-
-						fileOriginalWordCount = currentWordCount;
+						if (Math.abs(currentWordCount - originalWorkCount) >= wordsToBeDifferent) {
+//							MetricsHandlerService metricsHandlerService = ServiceManager.getService(myProject, MetricsHandlerService.class);
+//							metricsHandlerService.restart();
+							restart();
+						}
+					} else {
+						editedFilesWordsCount.put(filePath, countWordsInFile(eventFile));
 					}
 				}
 			}
@@ -212,13 +272,11 @@ public class MetricsHandlerService {
 		messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
 			@Override
 			public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-				VirtualFile eventNewFile = event.getNewFile();
-
-				if (eventNewFile != null && eventNewFile.getExtension() != null && eventNewFile.getExtension().equals("java")) {
-					currentFilePath = eventNewFile.getPath();
-
-					fileOriginalWordCount = countWordsInFile(eventNewFile);
-				}
+//				VirtualFile eventNewFile = event.getNewFile();
+//
+//				if (eventNewFile != null && eventNewFile.getExtension() != null && eventNewFile.getExtension().equals("java")) {
+//					currentFilePath = eventNewFile.getPath();
+//				}
 
 				HTTPPostRequestService httpPostRequestService = com.intellij.openapi.components.ServiceManager.getService(myProject, HTTPPostRequestService.class);
 				httpPostRequestService.fileIsChanged();
