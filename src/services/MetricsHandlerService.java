@@ -29,7 +29,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
@@ -41,17 +40,18 @@ import java.util.concurrent.TimeUnit;
  */
 public class MetricsHandlerService {
 	private Project myProject;
-	private ScheduledExecutorService executorService;
+	private ScheduledExecutorService executorFileUnderDevelopmentMetricsUpdate;
 	private HashMap<String, Double> latestFileMetrics;
 	private HashMap<String, Integer> editedFilesWordsCount;
 	private HashMap<String, CKNumber> report = new HashMap<>();
 	private ReducedCK CKMetricsCalculator;
 	private boolean firstMetricsComputed = false;
+	private boolean computingProjectMetrics = false;
 
 	public MetricsHandlerService(Project myProject) {
 		this.myProject = myProject;
 
-		executorService = JobScheduler.getScheduler();
+		executorFileUnderDevelopmentMetricsUpdate = JobScheduler.getScheduler();
 
 		this.setFileChangesListener();
 
@@ -60,20 +60,14 @@ public class MetricsHandlerService {
 		ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Compute metrics") {
 			@Override
 			public void run(@NotNull ProgressIndicator progressIndicator) {
-				progressIndicator.start();
-				progressIndicator.setFraction(0.);
+				String path = myProject.getBaseDir().toString().replace("file://", "");
 
-				Collection<VirtualFile> javaVirtualFiles = FileBasedIndex.getInstance().getContainingFiles(ID.create("filetypes"),JavaFileType.INSTANCE, GlobalSearchScope.projectScope(myProject));
-				ArrayList<String> javaFilesArray = new ArrayList<>();
+				CKReport metrics = CKMetricsCalculator.calculate(path);
+				Collection<CKNumber> metricsCollection = metrics.all();
 
-				javaVirtualFiles.forEach((VirtualFile vf) -> {
-					javaFilesArray.add(vf.getPath().replace("file://", ""));
-				});
-
-				String[] javaFiles = new String[javaFilesArray.size()];
-				javaFiles = javaFilesArray.toArray(javaFiles);
-
-				computeMetricsFromFileList(javaFiles, progressIndicator);
+				for (CKNumber ckn : metricsCollection) {
+					report.put(ckn.getFile(), ckn);
+				}
 
 				ApplicationManager.getApplication().invokeLater(() -> {
 					RadarChartSetterService RadarChartSetter = ServiceManager.getService(myProject, RadarChartSetterService.class);
@@ -101,19 +95,27 @@ public class MetricsHandlerService {
 	private void computeMetricsFromFileList(String[] javaFiles, ProgressIndicator pi) {
 		int size = javaFiles.length;
 		for (int i = 0; i<size; i++) {
-			report.putAll(getFileReport(javaFiles[i]));
+			HashMap<String, CKNumber> singleFileRep = getFileReport(javaFiles[i]);
+			new CCBC().calculate(report, singleFileRep);
+			report.putAll(singleFileRep);
 			if (pi != null) pi.setFraction((double) i / (size * 2));
 		}
 
-		Collection<CKNumber> allReport = report.values();
-		new CCBC().calculate(allReport);
+		ApplicationManager.getApplication().invokeLater(() -> {
+			if (!computingProjectMetrics)
+				computingProjectMetrics = true;
+				Collection<CKNumber> allReport = report.values();
+				new CCBC().calculate(allReport);
+				computingProjectMetrics = false;
+		});
+
 	}
 
 
 	void startExecution() {
 
-		if (executorService.isShutdown()) {
-			executorService = JobScheduler.getScheduler();
+		if (executorFileUnderDevelopmentMetricsUpdate.isShutdown()) {
+			executorFileUnderDevelopmentMetricsUpdate = JobScheduler.getScheduler();
 		}
 
 		PropertiesComponent component = PropertiesComponent.getInstance(myProject);
@@ -135,7 +137,7 @@ public class MetricsHandlerService {
 		};
 
 		long delay = computeDelay(seconds);
-		executorService.scheduleWithFixedDelay(taskWrapper, 0, delay, TimeUnit.SECONDS);
+		executorFileUnderDevelopmentMetricsUpdate.scheduleWithFixedDelay(taskWrapper, 0, delay, TimeUnit.SECONDS);
 	}
 
 
@@ -153,7 +155,7 @@ public class MetricsHandlerService {
 	}
 
 	private void stop() {
-		executorService.shutdownNow();
+		executorFileUnderDevelopmentMetricsUpdate.shutdownNow();
 	}
 
 	private void restart() {
